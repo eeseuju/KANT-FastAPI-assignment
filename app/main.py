@@ -4,7 +4,7 @@ from app.core.logging_config import setup_logging
 from app.core.middleware import register_middlewares
 from app.core.storage import UPLOAD_DIR
 from app.core.errors import error_responses, register_exception_handlers
-from app.routers import auth, comments, health, posts, uploads, users
+from app.routers import auth, comments, health, home, posts, uploads, users
 
 
 UPLOAD_DIR.mkdir(exist_ok=True)  # StaticFiles는 폴더가 이미 있어야 한다.
@@ -44,6 +44,7 @@ app = FastAPI(
 )
 
 
+app.include_router(home.router)
 app.include_router(health.router)
 app.include_router(auth.router)
 app.include_router(users.router)
