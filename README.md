@@ -1,9 +1,11 @@
 # Board API (board-be)
 
-회원가입·로그인(JWT)과 게시글·댓글을 제공하는 **RESTful 게시판 백엔드**입니다.
-이전에 만든 정적 HTML 공지사항(board) 화면을, 회원·권한·DB를 갖춘 API 서버로 다시 만들었습니다. [본인 말로 한두 문장 고쳐 쓰기]
+회원가입·로그인(JWT)과 게시글·댓글을 제공하는 RESTful 게시판 백엔드입니다.
+이전에 팀 프로젝트로 담당하고 만들었던 [정적 게시판](https://github.com/mjlee0914/FE-project-teamD/tree/main/domains/boards)을 회원·권한·DB를 갖춘 API 서버로 재구성했습니다.
 
 ## 배포 정보
+
+도메인이 없어 **HTTP**로 접속합니다.
 
 | 구분 | 주소 |
 |---|---|
@@ -11,9 +13,8 @@
 | **Swagger UI (API 문서·시험)** | http://13.125.86.166/docs |
 | ReDoc (읽기용 문서) | http://13.125.86.166/redoc |
 | 상태 확인 | http://13.125.86.166/health |
-| GitHub | https://github.com/eeseuju/KANT-FastAPI-assignment |
 
-> AWS EC2(Ubuntu 24.04, t3.micro, 서울 리전)에 배포했고, 고정 IP(탄력적 IP)를 연결했습니다. 도메인이 없어 **HTTP**로 접속합니다.
+![대문 — http://13.125.86.166](docs/images/home.png)
 
 ![Swagger UI — http://13.125.86.166/docs](docs/images/swagger.png)
 

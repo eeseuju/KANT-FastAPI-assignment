@@ -10,14 +10,9 @@ HOME_HTML = '''<!doctype html>
 <title>Board API</title>
 <style>
   :root {
+    color-scheme: light;
     --bg: #f6f7fb; --card: #ffffff; --text: #1d2433; --muted: #5b667a; --line: #e3e7ef;
     --accent: #4f46e5; --accent-text: #ffffff; --ok: #0a8f5b; --bad: #c0392b; --bar: #d9deea; --bar2: #eceff6;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #0f1420; --card: #171e2e; --text: #e8ecf5; --muted: #9aa6bd; --line: #2a3347;
-      --accent: #818cf8; --accent-text: #0f1420; --ok: #34d399; --bad: #f87171; --bar: #36415a; --bar2: #263046;
-    }
   }
   * { box-sizing: border-box; }
   body {
