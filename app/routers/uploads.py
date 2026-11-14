@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
+from app.core.errors import PayloadTooLargeError, UnsupportedMediaTypeError, error_responses
 from app.core.storage import (
     MAX_IMAGE_BYTES,
     delete_image,
@@ -15,7 +16,7 @@ from app.routers.posts import _get_owned_post  # 같은 패키지의 글 조회�
 from app.schemas.post import PostRead
 
 
-router = APIRouter(tags=['uploads'])
+router = APIRouter(tags=['uploads'], responses=error_responses(401, 403, 404, 413, 415))
 
 
 # (스레드에서 실행) 파일을 저장하고 글의 image_path를 바꾼다.
@@ -51,14 +52,8 @@ async def upload_post_image(
 
     content = await file.read(MAX_IMAGE_BYTES + 1)  # 한도보다 1바이트 더 읽어서 초과를 알아낸다.
     if len(content) > MAX_IMAGE_BYTES:
-        raise HTTPException(
-            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
-            detail='이미지는 5MB 이하만 올릴 수 있습니다.',
-        )
+        raise PayloadTooLargeError('이미지는 5MB 이하만 올릴 수 있습니다.', code='FILE_TOO_LARGE')
     ext = detect_image_ext(content)  # Content-Type이 아니라 파일 내용으로 확인한다.
     if ext is None:
-        raise HTTPException(
-            status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-            detail='jpg, png, gif, webp 이미지만 올릴 수 있습니다.',
-        )
+        raise UnsupportedMediaTypeError('jpg, png, gif, webp 이미지만 올릴 수 있습니다.', code='UNSUPPORTED_FILE_TYPE')
     return await run_in_threadpool(_attach_image, db, post, content, ext)

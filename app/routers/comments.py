@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
+from app.core.errors import ForbiddenError, NotFoundError, error_responses
 from app.db.session import get_db
 from app.deps import get_current_user
 from app.models.comment import Comment
@@ -10,13 +11,11 @@ from app.models.user import User
 from app.schemas.comment import CommentCreate, CommentRead
 
 
-router = APIRouter(tags=['comments'])
+router = APIRouter(tags=['comments'], responses=error_responses(401, 403, 404))
 
 
-def _post_not_found() -> HTTPException:
-    return HTTPException(
-        status_code=status.HTTP_404_NOT_FOUND, detail='게시글을 찾을 수 없습니다.'
-    )
+def _post_not_found() -> NotFoundError:
+    return NotFoundError('게시글을 찾을 수 없습니다.', code='POST_NOT_FOUND')
 
 
 # 글이 없으면 404 (본문까지 읽지 않도록 id만 조회)
@@ -89,12 +88,8 @@ def delete_comment(
 ):
     comment = db.get(Comment, comment_id)
     if comment is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='댓글을 찾을 수 없습니다.'
-        )
+        raise NotFoundError('댓글을 찾을 수 없습니다.', code='COMMENT_NOT_FOUND')
     if comment.author_id != current_user.id:  # 작성자 검증(인가)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail='작성자만 삭제할 수 있습니다.'
-        )
+        raise ForbiddenError('작성자만 삭제할 수 있습니다.', code='NOT_COMMENT_AUTHOR')
     db.delete(comment)
     db.commit()

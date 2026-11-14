@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, joinedload
+from app.core.errors import ForbiddenError, NotFoundError, error_responses
 from app.core.storage import delete_image
 from app.db.session import get_db
 from app.deps import get_current_user
@@ -15,7 +16,7 @@ from app.schemas.post import (
 )
 
 
-router = APIRouter(prefix='/posts', tags=['posts'])
+router = APIRouter(prefix='/posts', tags=['posts'], responses=error_responses(401, 403, 404))
 
 
 # 글과 작성자를 가져옴 (없으면 404)
@@ -24,9 +25,7 @@ def _get_post_or_404(db: Session, post_id: int) -> Post:
         select(Post).options(joinedload(Post.author)).where(Post.id == post_id)
     )
     if post is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail='게시글을 찾을 수 없습니다.'
-        )
+        raise NotFoundError('게시글을 찾을 수 없습니다.', code='POST_NOT_FOUND')
     return post
 
 
@@ -35,9 +34,7 @@ def _get_post_or_404(db: Session, post_id: int) -> Post:
 def _get_owned_post(db: Session, post_id: int, user: User, action: str) -> Post:
     post = _get_post_or_404(db, post_id)
     if post.author_id != user.id:  # 작성자 검증(인가)
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail=f'작성자만 {action}할 수 있습니다.'
-        )
+        raise ForbiddenError(f'작성자만 {action}할 수 있습니다.', code='NOT_POST_AUTHOR')
     return post
 
 
