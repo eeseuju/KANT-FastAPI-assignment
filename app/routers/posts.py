@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, joinedload
+from app.core.storage import delete_image
 from app.db.session import get_db
 from app.deps import get_current_user
 from app.models.post import Post
@@ -133,5 +134,7 @@ def delete_post(
     current_user: User = Depends(get_current_user),
 ):
     post = _get_owned_post(db, post_id, current_user, '삭제')
-    db.delete(post)  # 댓글은 DB의 CASCADE로 함께 지워진다
+    image_path = post.image_path  # 지운 뒤에는 읽을 수 없으니 미리 보관
+    db.delete(post)  # 댓글은 DB의 CASCADE로 함께 지워진다.
     db.commit()
+    delete_image(image_path)  # 이미지 파일도 함께 지운다.

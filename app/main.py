@@ -1,6 +1,10 @@
 from fastapi import FastAPI
-from app.routers import auth, comments, health, posts, users
+from fastapi.staticfiles import StaticFiles
+from app.core.storage import UPLOAD_DIR
+from app.routers import auth, comments, health, posts, uploads, users
 
+
+UPLOAD_DIR.mkdir(exist_ok=True)  # StaticFiles는 폴더가 이미 있어야 한다.
 
 app = FastAPI(
     title='Board API',
@@ -14,3 +18,5 @@ app.include_router(auth.router)
 app.include_router(users.router)
 app.include_router(posts.router)
 app.include_router(comments.router)
+app.include_router(uploads.router)
+app.mount('/uploads', StaticFiles(directory=UPLOAD_DIR), name='uploads')
