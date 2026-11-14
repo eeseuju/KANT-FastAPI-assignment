@@ -61,3 +61,13 @@ class PostRead(BaseModel):
     author: UserPublic
     created_at: datetime
     updated_at: datetime
+
+
+# 글 목록 조회
+class PostListResponse(BaseModel):
+
+    items: list[PostRead]
+    total: int = Field(description='조건에 맞는 전체 글 수')
+    page: int = Field(description='현재 페이지(1부터)')
+    size: int = Field(description='페이지당 글 수')
+    pages: int = Field(description='전체 페이지 수')

@@ -1,0 +1,137 @@
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session, joinedload
+from app.db.session import get_db
+from app.deps import get_current_user
+from app.models.post import Post
+from app.models.user import User
+from app.schemas.post import (
+    PostCategory,
+    PostCreate,
+    PostListResponse,
+    PostRead,
+    PostUpdate,
+)
+
+
+router = APIRouter(prefix='/posts', tags=['posts'])
+
+
+# 글과 작성자를 가져옴 (없으면 404)
+def _get_post_or_404(db: Session, post_id: int) -> Post:
+    post = db.scalar(
+        select(Post).options(joinedload(Post.author)).where(Post.id == post_id)
+    )
+    if post is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail='게시글을 찾을 수 없습니다.'
+        )
+    return post
+
+
+
+# 내 글 (글이 없으면 404, 내 글이 아니면 403)
+def _get_owned_post(db: Session, post_id: int, user: User, action: str) -> Post:
+    post = _get_post_or_404(db, post_id)
+    if post.author_id != user.id:  # 작성자 검증(인가)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f'작성자만 {action}할 수 있습니다.'
+        )
+    return post
+
+
+@router.post(
+    '',
+    response_model=PostRead,
+    status_code=status.HTTP_201_CREATED,
+    summary='글 작성(로그인 필요)',
+)
+def create_post(
+    body: PostCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    post = Post(
+        author_id=current_user.id,  # 작성자는 본문이 아니라 토큰에서 가져온다
+        category=body.category.value,
+        title=body.title,
+        content=body.content,
+    )
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+@router.get('', response_model=PostListResponse, summary='글 목록(최신순, 페이지네이션)')
+def list_posts(
+    page: int = Query(1, ge=1, description='페이지 번호(1부터)'),
+    size: int = Query(10, ge=1, le=50, description='페이지당 글 수(최대 50)'),
+    category: PostCategory | None = Query(None, description='분류로 거르기'),
+    q: str | None = Query(None, min_length=1, max_length=50, description='제목·본문 검색어'),
+    db: Session = Depends(get_db),
+):
+    # 거르기 조건을 모은다. 조건이 없으면 전체가 대상이다.
+    conditions = []
+    if category is not None:
+        conditions.append(Post.category == category.value)
+    if q:
+        conditions.append(
+            or_(
+                Post.title.icontains(q, autoescape=True),
+                Post.content.icontains(q, autoescape=True),
+            )
+        )
+
+    # 조건에 맞는 전체 글 수(페이지 계산용)
+    total = db.scalar(select(func.count()).select_from(Post).where(*conditions))
+
+    # 한 페이지 분량만 가져온다. joinedload로 작성자도 같은 쿼리에서 가져온다(N+1 방지).
+    posts = db.scalars(
+        select(Post)
+        .options(joinedload(Post.author))
+        .where(*conditions)
+        .order_by(Post.created_at.desc(), Post.id.desc())
+        .offset((page - 1) * size)
+        .limit(size)
+    ).all()
+
+    return PostListResponse(
+        items=[PostRead.model_validate(p) for p in posts],
+        total=total,
+        page=page,
+        size=size,
+        pages=(total + size - 1) // size,  # 올림 나눗셈
+    )
+
+
+@router.get('/{post_id}', response_model=PostRead, summary='글 상세 조회')
+def read_post(post_id: int, db: Session = Depends(get_db)):
+    return _get_post_or_404(db, post_id)
+
+
+@router.patch('/{post_id}', response_model=PostRead, summary='글 수정(작성자만)')
+def update_post(
+    post_id: int,
+    body: PostUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    post = _get_owned_post(db, post_id, current_user, '수정')
+    # 보낸 항목만 골라서 바꾼다(Enum은 문자열로 바뀐다).
+    for field, value in body.model_dump(exclude_unset=True, mode='json').items():
+        setattr(post, field, value)
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+@router.delete('/{post_id}', status_code=status.HTTP_204_NO_CONTENT, summary='글 삭제(작성자만)')
+def delete_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    post = _get_owned_post(db, post_id, current_user, '삭제')
+    db.delete(post)  # 댓글은 DB의 CASCADE로 함께 지워진다
+    db.commit()
