@@ -1,8 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 
-GITHUB_URL = 'https://github.com/eeseuju/KANT-FastAPI-assignment'
-
 # 외부 CSS·JS·이미지·글꼴을 전혀 불러오지 않는 한 장짜리 페이지(그림은 아래 SVG를 직접 그린 것).
 HOME_HTML = '''<!doctype html>
 <html lang="ko">
@@ -76,7 +74,6 @@ HOME_HTML = '''<!doctype html>
         <a class="btn primary" href="/docs">API 문서 열기 (Swagger)</a>
         <a class="btn" href="/redoc">ReDoc</a>
         <a class="btn" href="/health">상태 확인</a>
-        <a class="btn" href="__GITHUB__">GitHub</a>
       </div>
       <p class="status" id="status">서버 상태를 확인하는 중…</p>
     </div>
@@ -139,7 +136,7 @@ HOME_HTML = '''<!doctype html>
 </script>
 </body>
 </html>
-'''.replace('__GITHUB__', GITHUB_URL)
+'''
 
 router = APIRouter()
 
