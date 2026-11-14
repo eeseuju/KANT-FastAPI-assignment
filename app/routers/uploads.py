@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, File, UploadFile
 from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import Session
+from app.core.cache import post_cache
 from app.core.errors import PayloadTooLargeError, UnsupportedMediaTypeError, error_responses
 from app.core.storage import (
     MAX_IMAGE_BYTES,
@@ -30,6 +31,7 @@ def _attach_image(db: Session, post: Post, content: bytes, ext: str) -> Post:
         db.rollback()
         delete_image(new_path)  # DB 저장에 실패하면 방금 저장한 파일도 되돌린다.
         raise
+    post_cache.clear()  # 이미지가 바뀌었으니 캐시를 비운다.
     db.refresh(post)
     post.author  # 응답을 만들 때 DB를 또 건드리지 않도록 미리 읽어 둔다.
     delete_image(old_path)  # 교체였다면 옛 이미지는 지운다.

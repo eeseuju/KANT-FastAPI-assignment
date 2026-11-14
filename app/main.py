@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from app.core.logging_config import setup_logging
+from app.core.middleware import register_middlewares
 from app.core.storage import UPLOAD_DIR
 from app.core.errors import error_responses, register_exception_handlers
 from app.routers import auth, comments, health, posts, uploads, users
 
 
 UPLOAD_DIR.mkdir(exist_ok=True)  # StaticFiles는 폴더가 이미 있어야 한다.
+
+setup_logging()  # app을 만들기 전에 호출
 
 app = FastAPI(
     title='Board API',
@@ -24,3 +28,4 @@ app.include_router(uploads.router)
 app.mount('/uploads', StaticFiles(directory=UPLOAD_DIR), name='uploads')
 
 register_exception_handlers(app)
+register_middlewares(app)  
