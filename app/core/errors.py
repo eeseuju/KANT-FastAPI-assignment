@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 
@@ -22,9 +22,25 @@ class ErrorBody(BaseModel):
     details: list[ErrorDetail] | None = Field(default=None, description='입력 오류일 때 항목별 설명')
 
 
+# 모든 오류 응답이 따르는 공통 형식
 class ErrorResponse(BaseModel):
 
-    error: ErrorBody # 모든 오류 응답이 따르는 공통 형식
+    model_config = ConfigDict(
+        json_schema_extra={
+            'examples': [
+                {'error': {'code': 'POST_NOT_FOUND', 'message': '게시글을 찾을 수 없습니다.', 'details': None}},
+                {
+                    'error': {
+                        'code': 'VALIDATION_ERROR',
+                        'message': '입력값이 올바르지 않습니다.',
+                        'details': [{'field': 'body.title', 'message': 'String should have at least 1 character'}],
+                    }
+                },
+            ]
+        }
+    )
+
+    error: ErrorBody
 
 
 # ---------- 고의 오류 ----------

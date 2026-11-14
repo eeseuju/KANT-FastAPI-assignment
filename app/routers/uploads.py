@@ -49,6 +49,13 @@ async def upload_post_image(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    '''글에 이미지를 올립니다. **글 작성자만** 할 수 있습니다.
+
+    - `jpg`, `png`, `gif`, `webp`만 가능하며 최대 5MB입니다.
+    - 파일 종류는 확장자나 `Content-Type`이 아니라 **파일 내용**으로 확인합니다(가짜 이미지는 `415`).
+    - 이미 이미지가 있으면 새 이미지로 교체되고 옛 파일은 삭제됩니다.
+    - 올린 이미지는 응답의 `image_path` 주소로 볼 수 있습니다.
+    '''
     # DB 작업은 동기라서 스레드로 넘긴다. (서버가 다른 요청을 계속 받을 수 있게)
     post = await run_in_threadpool(_get_owned_post, db, post_id, current_user, '이미지 업로드')
 

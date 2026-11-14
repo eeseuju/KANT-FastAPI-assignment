@@ -36,6 +36,7 @@ def create_comment(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    '''글에 댓글을 작성합니다. 로그인이 필요하며, 글이 없으면 `404`입니다. 내용은 1~1000자입니다.'''
     _ensure_post_exists(db, post_id)
     comment = Comment(
         post_id=post_id,
@@ -64,6 +65,7 @@ def list_comments(
     size: int = Query(20, ge=1, le=100, description='페이지당 댓글 수(최대 100)'),
     db: Session = Depends(get_db),
 ):
+    '''글의 댓글을 **오래된 순**으로 돌려줍니다(`page`, `size`로 쪽 나눔). 로그인 없이 볼 수 있습니다.'''
     _ensure_post_exists(db, post_id)
     # joinedload: 댓글과 작성자를 한 번의 쿼리로 가져온다(N+1 방지)
     return db.scalars(
@@ -86,6 +88,7 @@ def delete_comment(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    '''댓글을 삭제합니다. **댓글을 쓴 사람만** 할 수 있습니다. 글 작성자도 남의 댓글은 지울 수 없습니다(`403`).'''
     comment = db.get(Comment, comment_id)
     if comment is None:
         raise NotFoundError('댓글을 찾을 수 없습니다.', code='COMMENT_NOT_FOUND')

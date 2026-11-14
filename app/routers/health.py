@@ -17,6 +17,7 @@ router = APIRouter(tags=['health'])
     responses={503: {'model': HealthResponse, 'description': 'DB에 연결할 수 없음'}},
 )
 def health(db: Session = Depends(get_db)):
+    '''서버와 DB가 정상인지 확인합니다. DB에 연결할 수 없으면 `503`을 돌려줍니다.'''
     # DB를 쓰므로 def로 쓴다
     # 서버가 다른 요청을 계속 받을 수 있게 별도 스레드에서 실행된다.
     try:
