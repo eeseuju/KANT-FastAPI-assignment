@@ -1,0 +1,15 @@
+[Unit]
+Description=Board API (FastAPI + uvicorn)
+After=network.target
+
+[Service]
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/home/ubuntu/board-be
+# 캐시가 프로세스 메모리에 있어서 워커는 1개로 둔다. 외부에서 직접 못 들어오게 127.0.0.1에만 연다.
+ExecStart=/home/ubuntu/board-be/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --no-access-log --proxy-headers --forwarded-allow-ips 127.0.0.1
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
