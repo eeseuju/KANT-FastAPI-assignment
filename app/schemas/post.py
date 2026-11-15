@@ -5,18 +5,13 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 from app.schemas.user import UserPublic
 
 
-# 게시글 분류 (FE팀프로젝트(DNMall) board의 분류를 그대로 사용)
+# 게시글 분류 (4가지만 허용)
 class PostCategory(str, Enum):
 
     NOTICE = '공지'
     EVENT = '이벤트'
-    UPDATE = '업데이트'
-    SHOP = '상점'
-    SECURITY = '보안'
-    CASH = '캐시'
-    PATCH = '패치'
-    SANCTION = '제재'
-    MAINTENANCE = '점검'
+    INQUIRY = '고객문의'
+    COMMUNITY = '커뮤니티'
 
 
 Title = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]

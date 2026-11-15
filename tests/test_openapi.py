@@ -116,6 +116,11 @@ def test_upload_and_conflict_errors_are_documented(spec):
     assert '503' in spec['paths']['/health']['get']['responses']
 
 
+def test_post_categories_are_documented_as_exactly_four_values(spec):
+    # Swagger의 드롭다운에 허용 값이 정확히 이 4가지만 나온다.
+    assert spec['components']['schemas']['PostCategory']['enum'] == ['공지', '이벤트', '고객문의', '커뮤니티']
+
+
 def test_request_body_fields_have_descriptions(spec):
     schemas = spec['components']['schemas']
     for name in ('UserCreate', 'PostCreate', 'PostUpdate', 'CommentCreate'):

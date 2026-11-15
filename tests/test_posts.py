@@ -39,7 +39,7 @@ def test_list_is_newest_first_with_pagination(client, alice, make_post):
 
 
 def test_list_filters_and_search(client, alice, make_post):
-    make_post(alice, title='점검 안내', category='점검')
+    make_post(alice, title='환불 문의 안내', category='고객문의')
     make_post(alice, title='이벤트 안내', category='이벤트')
     make_post(alice, title='Hello World', category='공지', content='plain')
     only_events = client.get('/posts', params={'category': '이벤트'}).json()
@@ -79,8 +79,24 @@ def test_patch_changes_only_sent_fields(client, alice, make_post):
 
 def test_patch_category(client, alice, make_post):
     post = make_post(alice)
-    r = client.patch(f"/posts/{post['id']}", headers=alice, json={'category': '보안'})
-    assert r.status_code == 200 and r.json()['category'] == '보안'
+    r = client.patch(f"/posts/{post['id']}", headers=alice, json={'category': '커뮤니티'})
+    assert r.status_code == 200 and r.json()['category'] == '커뮤니티'
+
+
+def test_only_four_categories_are_allowed(client, alice, make_post):
+    # 허용하는 4가지는 모두 글을 쓸 수 있다.
+    for category in ('공지', '이벤트', '고객문의', '커뮤니티'):
+        assert make_post(alice, category=category)['category'] == category
+    # 예전에 쓰던 분류와 그 밖의 값은 거절한다(작성·수정·목록 거르기 모두).
+    post_id = make_post(alice)['id']
+    for old in ('업데이트', '상점', '보안', '캐시', '패치', '제재', '점검', '자유'):
+        body = {'category': old, 'title': 't', 'content': 'c'}
+        assert client.post('/posts', headers=alice, json=body).status_code == 422
+        assert client.patch(f'/posts/{post_id}', headers=alice, json={'category': old}).status_code == 422
+        assert client.get('/posts', params={'category': old}).status_code == 422
+    # 각 분류로 목록을 거를 수 있다(위에서 글을 만들었다: 공지 2개, 나머지 1개씩).
+    totals = {c: client.get('/posts', params={'category': c}).json()['total'] for c in ('공지', '이벤트', '고객문의', '커뮤니티')}
+    assert totals == {'공지': 2, '이벤트': 1, '고객문의': 1, '커뮤니티': 1}
 
 
 def test_patch_rejects_empty_and_null_and_invalid(client, alice, make_post):
