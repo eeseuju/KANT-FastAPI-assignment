@@ -50,7 +50,7 @@ erDiagram
 - 목록·댓글 조회는 `joinedload`로 작성자를 JOIN 한 번에 가져와 N+1 쿼리 방지
 - 글을 지우면 댓글이 DB에서 함께 삭제 (`ondelete='CASCADE'`)
 
-### CASCADE 사례
+### 참고: CASCADE 사례
 글 id 277에 댓글 2개를 달고, 그 글을 `DELETE` 할 경우의 DB 변화 입니다.
 
 - **글 삭제 전** : post_id 277과 댓글 2개  
