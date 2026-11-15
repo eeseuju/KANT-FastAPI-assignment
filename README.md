@@ -1,7 +1,7 @@
 # Board API (board-be)
 
 회원가입·로그인(JWT)과 게시글·댓글을 제공하는 RESTful 게시판 백엔드입니다.  
-이전에 참여한 프론트엔드 팀 프로젝트에서 담당했던 [정적 게시판](https://github.com/mjlee0914/FE-project-teamD/tree/main/domains/boards) 영역을 회원·권한·DB를 갖춘 API 서버로 재구성했습니다.
+이전에 참여한 [프론트엔드 팀 프로젝트에서 담당했던 정적 게시판](https://github.com/mjlee0914/FE-project-teamD/tree/main/domains/boards) 영역을 회원·권한·DB를 갖춘 API 서버로 재구성했습니다.
 
 - 기술 스택 : Python 3.13 · FastAPI · Pydantic v2 · SQLAlchemy 2.x · Alembic · PostgreSQL(Supabase) · PyJWT · bcrypt · uv · pytest · AWS EC2(Ubuntu) · nginx · systemd
 
