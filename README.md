@@ -53,13 +53,13 @@ erDiagram
 ### CASCADE 사례
 글 id 277에 댓글 2개를 달고, 그 글을 `DELETE` 할 경우의 DB 변화 입니다.
 
-- **글 삭제 전** : post_id 277과 댓글 2개
+- **글 삭제 전** : post_id 277과 댓글 2개  
+
   ![글 삭제 전 — post_id 277의 댓글 2개](docs/images/cascade_before.png)
 
-- **글 삭제 후** : 댓글도 함께 사라져 테이블이 비어 있음
-  ![글 삭제 후 — 댓글도 함께 사라져 테이블이 비어 있음](docs/images/cascade_after.png)
+- **글 삭제 후** : 댓글도 함께 사라져 테이블이 비어 있음  
 
-<br>
+  ![글 삭제 후 — 댓글도 함께 사라져 테이블이 비어 있음](docs/images/cascade_after.png)
 
 ## 3. API 목록
 
@@ -144,20 +144,18 @@ uv run uvicorn app.main:app --reload # 그 다음 http://127.0.0.1:8000/docs 를
 
 <table>
   <tr>
-    <td align="center" valign="top" width="46%">
-      <b><a href="http://13.125.86.166">소개 화면</a></b><br>
-      <img src="docs/images/home.png" alt="대문" width="100%">
-    </td>
-    <td align="center" valign="top" width="54%" rowspan="2">
-      <b><a href="http://13.125.86.166/docs">Swagger UI</a></b><br>
-      <img src="docs/images/swagger.png" alt="Swagger UI" width="100%">
-    </td>
+    <th width="46%"><a href="http://13.125.86.166">소개 화면</a></th>
+    <th width="54%"><a href="http://13.125.86.166/docs">Swagger UI</a></th>
   </tr>
   <tr>
-    <td align="center" valign="top">
-      <b><a href="http://13.125.86.166/redoc">ReDoc</a></b><br>
-      <img src="docs/images/redoc.png" alt="ReDoc" width="100%">
-    </td>
+    <td align="center" valign="top"><img src="docs/images/home.png" alt="소개 화면" width="100%"></td>
+    <td align="center" valign="top" rowspan="3"><img src="docs/images/swagger.png" alt="Swagger UI" width="100%"></td>
+  </tr>
+  <tr>
+    <th><a href="http://13.125.86.166/redoc">ReDoc</a></th>
+  </tr>
+  <tr>
+    <td align="center" valign="top"><img src="docs/images/redoc.png" alt="ReDoc" width="100%"></td>
   </tr>
 </table>
 
