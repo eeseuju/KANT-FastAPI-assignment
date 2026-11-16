@@ -1,19 +1,24 @@
-# Board API (board-be)
+# Board API (FastAPI)
 
-회원가입·로그인(JWT)과 게시글·댓글을 제공하는 RESTful 게시판 백엔드입니다.  
-이전에 참여한 [프론트엔드 팀 프로젝트에서 담당했던 정적 게시판](https://github.com/mjlee0914/FE-project-teamD/tree/main/domains/boards) 영역을 회원·권한·DB를 갖춘 API 서버로 재구성했습니다.
+회원가입 · 로그인(JWT)과 게시글 · 댓글을 제공하는 RESTful 게시판 백엔드입니다. 이전에 참여한 프론트엔드 팀 프로젝트에서 담당했던 [정적 게시판](https://github.com/mjlee0914/FE-project-teamD/tree/main/domains/boards)을 회원 · 권한 · DB를 갖춘 API 서버로 재구성했습니다.
 
-- 기술 스택 : Python 3.13 · FastAPI · Pydantic v2 · SQLAlchemy 2.x · Alembic · PostgreSQL(Supabase) · PyJWT · bcrypt · uv · pytest · AWS EC2(Ubuntu) · nginx · systemd
+<br>
+
+> **개발환경**
+> 
+> Python · FastAPI · Pydantic · SQLAlchemy · Alembic · Supabase (PostgreSQL) · PyJWT · bcrypt · uv · pytest · AWS EC2 (Ubuntu) · nginx · systemd
+
+<br>
 
 > **목차**
-> - [1. 주요 기능](#1-주요-기능)
-> - [2. DB 설계](#2-db-설계)
-> - [3. API 목록](#3-api-목록)
-> - [4. 오류 응답 형식](#4-오류-응답-형식)
-> - [5. 프로젝트 구조](#5-프로젝트-구조)
-> - [6. 실행 방법](#6-실행-방법)
-> - [7. 설계 결정과 배운점](#7-설계-결정과-배운점)
-> - [8. 개선 사항과 한계점](#8-개선-사항과-한계점)
+> 1. [주요 기능](#1-주요-기능)
+> 2. [DB 설계](#2-db-설계)
+> 3. [API 목록](#3-api-목록)
+> 4. [오류 응답 형식](#4-오류-응답-형식)
+> 5. [프로젝트 구조](#5-프로젝트-구조)
+> 6. [실행 방법](#6-실행-방법)
+> 7. [설계 결정과 배운점](#7-설계-결정과-배운점)
+> 8. [개선 사항과 한계점](#8-개선-사항과-한계점)
 
 <br>
 
@@ -50,7 +55,9 @@ erDiagram
 - 목록·댓글 조회는 `joinedload`로 작성자를 JOIN 한 번에 가져와 N+1 쿼리 방지
 - 글을 지우면 댓글이 DB에서 함께 삭제 (`ondelete='CASCADE'`)
 
-### 참고: CASCADE 사례
+<br>
+
+### _[참고] CASCADE 사례_
 글 id 277에 댓글 2개를 달고, 그 글을 `DELETE` 할 경우의 DB 변화 입니다.
 
 - **글 삭제 전** : post_id 277과 댓글 2개  
@@ -60,6 +67,8 @@ erDiagram
 - **글 삭제 후** : 댓글도 함께 사라져 테이블이 비어 있음  
 
   ![글 삭제 후 — 댓글도 함께 사라져 테이블이 비어 있음](docs/images/cascade_after.png)
+
+<br>
 
 ## 3. API 목록
 
@@ -85,8 +94,8 @@ erDiagram
 
 ## 4. 오류 응답 형식
 
-모든 오류는 같은 모양입니다. `code`는 프로그램 코드, `message`는 사용자 설명입니다.  
-서버 내부 오류(500)는 원인을 서버 로그에만 남기고 응답에는 일반 문구만 보냅니다.
+- 모든 오류는 같은 모양입니다. `code`는 프로그램 코드, `message`는 사용자 설명입니다.  
+- 서버 내부 오류(500)는 원인을 서버 로그에만 남기고 응답에는 일반 문구만 보냅니다.
 
 ```json
 { "error": { "code": "POST_NOT_FOUND", "message": "게시글을 찾을 수 없습니다.", "details": null } }
@@ -174,10 +183,10 @@ uv run uvicorn app.main:app --reload # 그 다음 http://127.0.0.1:8000/docs 를
 
 ## 7. 설계 결정과 배운점
 
-- Alembic : 처음 써 보는 도구였지만 새로 배워 보고 싶어서 `create_all` 대신 선택했습니다. 테이블 구조가 바뀌어도 데이터를 지우지 않고 변경 이력을 남길 수 있고, EC2에서도 `alembic upgrade head` 한 줄로 같은 구조로 맞출 수 있다는 점도 배웠습니다.
-- `def`와 `async def` : DB(동기 SQLAlchemy)를 쓰는 API는 `def`로 두고(별도 스레드에서 실행), 파일 업로드만 `async def` + `run_in_threadpool`로 구현했습니다. `async def` 안에서 동기 DB 호출을 하면 서버가 다른 요청을 못 받기 때문입니다.
-- 파일 업로드 안전장치 : 사용자가 보낸 파일 이름은 쓰지 않고(무작위 이름), 확장자·Content-Type이 아니라 파일 내용(매직 넘버)으로 종류를 확인합니다.
-- 캐시 무효화 : 글이 바뀌면(작성·수정·삭제·이미지) 캐시를 비웁니다. 오류 응답은 캐시하지 않습니다.
+- **Alembic** : 새로 배워 보고 싶어서 `create_all` 대신 선택. 테이블 구조가 바뀌어도 데이터를 지우지 않고 변경 이력을 남길 수 있고, EC2에서도 `alembic upgrade head` 한 줄로 같은 구조로 맞출 수 있었다.
+- **`def`와 `async def`** : DB(동기 SQLAlchemy)를 쓰는 API는 `def`로 두고(별도 스레드에서 실행), 파일 업로드만 `async def` + `run_in_threadpool`로 구현
+- **파일 업로드 안전장치** : 사용자가 보낸 파일 이름은 쓰지 않고(무작위 이름), 확장자·Content-Type이 아니라 파일 내용(매직 넘버)으로 종류 확인
+- **캐시 무효화** : 글이 바뀌면(작성·수정·삭제·이미지) 캐시를 비우고 오류 응답은 캐시하지 않는다.
 
 <br>
 
